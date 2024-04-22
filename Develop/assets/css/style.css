@@ -14,3 +14,16 @@ body {
 .task-card:hover {
   cursor: grab;
 }
+
+
+.overdue {
+  background-color: #ffcccc;
+}
+
+.nearing-deadline {
+  background-color: #ffff99;
+}
+
+.normal {
+ 
+}

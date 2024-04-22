@@ -1,6 +1,6 @@
 // Retrieve tasks and nextId from localStorage
 let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
-let nextId = JSON.parse(localStorage.getItem("nextId"));
+let nextId = JSON.parse(localStorage.getItem("nextId")) ||"122";
 
 // Todo: create a function to generate a unique task id
 function generateTaskId() {
@@ -15,7 +15,8 @@ function createTaskCard() {
         id: generateTaskId(),
         title: $("#taskTitle").val(),
         description: $("#taskDescription").val(),
-        dueDate: $("#dueDate").val()
+        dueDate: $("#dueDate").val(),
+        status:"To Do"
     };
 
     console.log("Task ID:", task.id);
@@ -44,24 +45,31 @@ function renderTaskList() {
     doneCards.empty();
 
     taskList.forEach(task => {
-        const taskItem = $("<div>").text(`${task.title}: ${task.description}: ${task.dueDate}`);
-
+        // const taskItem = $("<div>").text(`${task.title}: ${task.description}: ${task.dueDate}`);
+        const taskItem = `<div class="card draggable" style="width: 18rem;" data-status="${task.status}" data-task-id ="${task.id}">
+         <div class="card-body">
+           <h5 class="card-title">${task.title}</h5>
+           <h6 class="description mb-2 text-body-secondary">${task.description}</h6>
+           <p class= "due-Date"> ${task.dueDate}</p>  
+         </div>
+       </div>`
         if (task.status === "To Do") {
             todoCards.append(taskItem);
-        } else if (task.status === "In Progress") {
+        } else if (task.status === "in-progress") {
             inProgressCards.append(taskItem);
-        } else if (task.status === "Done") {
+        } else if (task.status === "done") {
             doneCards.append(taskItem);
         }
     });
-}
-
 
 $( function() {
-    $( "#draggable" ).draggable({ handle: "p" });
-    $( "#draggable2" ).draggable({ cancel: "p.ui-widget-header" });
-    $( "div, p" ).disableSelection();
+    $( ".draggable" ).draggable({
+        zIndex: 50
+    });
+    // $( "#draggable2" ).draggable({ cancel: "p.ui-widget-header" });
+    // $( "div, p" ).disableSelection();
   } );
+}
 
 
 // // Todo: create a function to handle deleting a task
@@ -82,31 +90,61 @@ function handleDeleteTask(taskId) {
             console.log("Task not found!");
 }
 }
+
+
 // // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
-    
-$(function () {
-    $("#sortable").sortable({
-        revert: true
-    });
+    const taskId = ui.draggable.attr('data-task-id');
+    const newStatus = $(event.target).attr('data-status');
+console.log(newStatus)
+    const taskIndex = taskList.findIndex(task => task.id.toString() === taskId);
+    if (taskIndex !== -1) {
+        taskList[taskIndex].status = newStatus;
+        localStorage.setItem("tasks", JSON.stringify(taskList));
+    }
 
-    $("#draggable").draggable({
-        connectToSortable: "#sortable",
-        helper: "clone",
-        revert: "invalid"
-    });
-
-    $("ul, li").disableSelection();
-});
-
+    renderTaskList();
 }
+
 
 // // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 $(document).ready(function () {
-    $("#taskForm").on("submit", handleAddTask); 
-    $("#btnAddTask").on("click", handleAddTask); 
     renderTaskList();
+    $("#taskForm").on("submit", handleAddTask); 
+  //  $("#btnAddTask").on("click", handleAddTask); 
+    
+    $( ".lane" ).droppable({
+        accept: ".draggable",
+        drop: handleDrop,
+         
+      
+      });
+
 });
+
+
+function colorCodeTasks() {
+    const currentDate = new Date();
+
+    taskList.forEach(task => {
+        const dueDate = new Date(task.dueDate);
+        const daysDifference = Math.floor((dueDate - currentDate) / (1000 * 60 * 60 * 24));
+
+        if (daysDifference <= 0) {
+            // Task is overdue
+            todoCards.append(taskItem).find('.task-card').addClass('overdue');
+        } else if (daysDifference <= 2) {
+            // Task is nearing deadline
+            todoCards.append(taskItem).find('.task-card').addClass('nearing-deadline');
+        } else {
+            // Task is normal
+            todoCards.append(taskItem);
+        }
+    });
+}
+
+
+
 
 
 // // // GIVEN a task board to manage a project
