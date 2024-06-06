@@ -87,7 +87,7 @@ function renderTaskList() {
 
 // Todo: create a function to handle deleting a task
 function handleDeleteTask(taskId) {
-    const index = taskList.findIndex(task => task.id === taskId);
+    const index = taskList.findIndex(task => task.id.toString() === taskId);
     
     if (index !== -1) {
         taskList.splice(index, 1);
@@ -97,6 +97,7 @@ function handleDeleteTask(taskId) {
         console.log("Task not found!");
     }
 }
+
 
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
